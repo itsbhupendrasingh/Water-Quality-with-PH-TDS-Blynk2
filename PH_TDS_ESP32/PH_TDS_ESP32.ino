@@ -6,8 +6,9 @@
  * **********************
  * PH Sensor- 13
  * TDS Sensor- 34
- * DS18B20- 14
- * 
+ * DS18B20 Temperature Sensor- 14
+ * Float Sensor- 12
+ * Led - 5 // Red Led
  */
 
 
@@ -29,12 +30,15 @@ unsigned long int avgValue;  //Store the average value of the sensor feedback
 float b;
 int buf[10],temp;
 
-
+int fl_Sensor=12;
+int fval=0;
+int Redled=5;
+//BlynkTimer timer;
 int f;  // for float value to string converstion
 float val; // also works with double. 
 char buff2[10];
 String valueString = "";
-String Value = ""; 
+String PH_Val = ""; 
 
 int DSPIN = 14; // Dallas Temperature Sensor
 int TDS_Sensor = 34;
@@ -44,7 +48,25 @@ float ec_Val = 0;
 unsigned int tds_value = 0;
 float ecCal = 1;
 
-void TDS_Val()
+WidgetLED ledglow(V5); // add virtual LED to V5
+
+void float_Data()
+{
+ fval = digitalRead(fl_Sensor);  
+ if (fval == LOW) 
+  { 
+    digitalWrite(Redled, HIGH);
+    ledglow.on();
+    Serial.println( "WATER LEVEL - HIGH"); 
+  } 
+  else 
+  { 
+    digitalWrite(Redled, LOW);
+    ledglow.off();
+    Serial.println( "WATER LEVEL - LOW" ); 
+  } 
+}
+void TDS_Data()
 {
   double wTemp = TempRead()* 0.0625;  // conversion accuracy is 0.0625 / LSB
   float V_level= Aref / 1024.0;
@@ -66,7 +88,7 @@ void TDS_Val()
   Blynk.virtualWrite(V3, tds_value);
   Blynk.virtualWrite(V4, ec_Val);
 }
-void PH_Val()
+void PH_Data()
 {
   for(int i=0;i<10;i++)       //Get 10 sample value from the sensor for smooth the value
   { 
@@ -91,21 +113,26 @@ void PH_Val()
   float phValue=(float)avgValue*3.3/1024/6; //convert the analog into millivolt
   phValue=3.5*phValue;                      //convert the millivolt into pH value
   
-  Value =  dtostrf(phValue, 4, 2, buff2);  //4 is mininum width, 6 is precision
-  Serial.print(Value);
+  PH_Val =  dtostrf(phValue, 4, 2, buff2);  //4 is mininum width, 6 is precision
+  Serial.print(PH_Val);
   valueString = "";
   delay(1000);
-  Blynk.virtualWrite(V0, 7.06);
+  Blynk.virtualWrite(V0, PH_Val);
 }
 void setup()
 {
   Serial.begin(9600);
   delay(100);
+  pinMode(fl_Sensor, INPUT_PULLUP); // Float Sensor
+  pinMode(Redled, OUTPUT); // Red LED
 
   BlynkEdgent.begin();
 }
 
 void loop() {
   BlynkEdgent.run();
-  PH_Val();
+  PH_Data();
+  TDS_Data();
+  float_Data();
+  delay(500);
 }
