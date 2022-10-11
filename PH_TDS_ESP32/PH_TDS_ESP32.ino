@@ -68,7 +68,8 @@ void float_Data()
 }
 void TDS_Data()
 {
-  double wTemp = TempRead()* 0.0625;  // conversion accuracy is 0.0625 / LSB
+//  double wTemp = TempRead()* 0.0625;  // conversion accuracy is 0.0625 / LSB
+  double wTemp= 27;
   float V_level= Aref / 1024.0;
   float rawEc = analogRead(TDS_Sensor) * V_level;  // Raw  data of EC
   float T_Cof = 1.0 + 0.02 * (wTemp - 25.0);  // Temperature Coefficient
